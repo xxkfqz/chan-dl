@@ -37,6 +37,7 @@ Supported imageboards:
  * 2ch
  * Dobrochan
  * Tumbach
+ * Lolifox
 ''',
         add_help = True,
         formatter_class = argparse.RawTextHelpFormatter
@@ -126,6 +127,12 @@ def parse_api(chan, board, response):
             for k in p['fileInfos']:
                 u.append(res_url.format(board, k['name']))
                 f.append(k['name'])
+    elif chan == 'lolifox':
+        res_url = 'https://lolifox.org/{}/src/{}.{}'
+        for p in response['posts']:
+            u.append(res_url.format(board, p['tim'], p['ext']))
+            f.append('{}{}'.format(p['tim'], p['ext']))
+
     return u, f
 
 def get_media_urls(raw_url):
@@ -154,6 +161,11 @@ def get_media_urls(raw_url):
         chan = 'tumbach'
         s[3] = s[3].split('.')[0]
         api_url = 'https://tumba.ch/{}/res/{}.json'.format(s[1], s[3])
+    # Lolifox
+    elif s[0] == 'lolifox.org':
+        chan = 'lolifox'
+        s[3] = s[3].split('.')[0]
+        api_url = 'https://lolifox.org/{}/res/{}.json'.format(s[1], s[3])
     # Anything else
     else:
         errexit('Unknown URL: {}'.format(raw_url))
@@ -162,8 +174,8 @@ def get_media_urls(raw_url):
         result = requests.get(api_url)
         if result.status_code != requests.codes.ok:
             result.raise_for_status()
-    except requests.HTTPError as error:
-        errexit('HTTP error! {} {}'.format(error.code, error.reason))
+    except requests.exceptions.RequestException as error:
+        errexit('{}'.format(error))
 
     re = result.json()
     u, f = parse_api(chan, s[1], re)
