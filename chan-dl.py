@@ -5,8 +5,13 @@ import signal
 import sys
 import os
 import argparse
-import requests
 import zipfile
+try:
+    import requests
+except ImportError:
+    # Are you fucking stupid? RTFM
+    print('Module "requests" not found. See README.md for details')
+    sys.exit(-1)
 
 # delete unfinished file when got a SIGINT
 journal_path = ''
