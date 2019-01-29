@@ -9,7 +9,7 @@ import zipfile
 try:
     import requests
 except ImportError:
-    # Are you fucking stupid? RTFM
+    # RTFM
     print('Module "requests" not found. See README.md for details')
     sys.exit(-1)
 
@@ -69,7 +69,7 @@ Supported imageboards:
         '-Z',
         '--only-zip',
         action = 'store_true',
-        help = 'delete downloaded files after archiving'
+        help = 'delete downloaded files after archiving\n(includes -z)'
     )
     parser.add_argument(
         '-q',
@@ -180,7 +180,7 @@ def get_media_urls(raw_url):
         if result.status_code != requests.codes.ok:
             result.raise_for_status()
     except requests.exceptions.RequestException as error:
-        errexit('{}'.format(error))
+        errexit('HTTPS connection error. Check connection and URL')
 
     re = result.json()
     u, f = parse_api(chan, s[1], re)
@@ -258,7 +258,7 @@ def download_from_thread(http_url, thread_index, max_thread_index):
         journal_path = ''
     print_c('"{}" done!'.format(path))
 
-    if cliargs.zip:
+    if cliargs.zip or cliargs.only_zip:
         make_zip(path)
 
 if __name__ == '__main__':

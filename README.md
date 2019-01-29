@@ -32,6 +32,7 @@ or
 	  -z, --zip             create *.zip arhive after downloading
 	                        (previous one will be removed if exists)
 	  -Z, --only-zip        delete downloaded files after archiving
+	                        (includes -z)
 	  -q, --quiet           do not print anything
 	  --no-stderr           disable stderr messages (do not disables tracebacks)
 
