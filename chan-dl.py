@@ -78,12 +78,6 @@ Supported imageboards:
         help = 'do not print anything'
     )
     parser.add_argument(
-        '-s',
-        '--skip-failed',
-        action = 'store_true',
-        help = 'just skip downloading failed URL instead quit'
-    )
-    parser.add_argument(
         '--no-stderr',
         action = 'store_true',
         help = 'disable stderr messages (do not disables tracebacks)'
@@ -186,12 +180,7 @@ def get_media_urls(raw_url):
         if result.status_code != requests.codes.ok:
             result.raise_for_status()
     except requests.exceptions.RequestException as error:
-        endfunc = errexit if not cliargs.skip_failed else print_c
-        if result.status_code != 200:
-            endfunc('Thread getting error. Code: {}'.format(result.status_code))
-        else:
-            endfunc('HTTPS connection error. Check connection and URL')
-        return None, None, None
+        errexit('HTTPS connection error. Check connection and URL')
 
     re = result.json()
     u, f = parse_api(chan, s[1], re)
@@ -230,8 +219,6 @@ def make_zip(path):
 
 def download_from_thread(http_url, thread_index, max_thread_index):
     media_urls, file_names, path = get_media_urls(http_url)
-    if media_urls is None:
-        return
     ulen = len(media_urls)
 
     if output_directory != '':
@@ -282,5 +269,4 @@ if __name__ == '__main__':
     output_directory = cliargs.dir or ''
 
     for index, current in enumerate(cliargs.urls):
-       print_c('\nRequesting {}'.format(current))
        download_from_thread(current, index, len(cliargs.urls))
