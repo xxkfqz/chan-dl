@@ -34,6 +34,7 @@ or
 	  -Z, --only-zip        delete downloaded files after archiving
 	                        (includes -z)
 	  -q, --quiet           do not print anything
+	  -s, --skip-failed     just skip downloading failed URL instead quit
 	  --no-stderr           disable stderr messages (do not disables tracebacks)
 
 # Examples
