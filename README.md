@@ -41,4 +41,4 @@ or
 
 	./chan-dl.py http://boards.4chan.org/c/thread/1990691
 
-	./chan-dl.py boards.4chan.org/w/thread/1565459 2ch.hk/pr/res/1008826.html#1008826 -o -d ~/pictures/ -zZ
+	./chan-dl.py boards.4chan.org/w/thread/1565459 2ch.hk/pr/res/1008826.html#1008826 -oZsd ~/pictures/

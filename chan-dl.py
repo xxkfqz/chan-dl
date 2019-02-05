@@ -281,6 +281,7 @@ if __name__ == '__main__':
 
     output_directory = cliargs.dir or ''
 
+    urlsLen = len(cliargs.urls)
     for index, current in enumerate(cliargs.urls):
-       print_c('\nRequesting {}'.format(current))
-       download_from_thread(current, index, len(cliargs.urls))
+       print_c('\n[{}/{}] Requesting {}'.format(index + 1, urlsLen, current))
+       download_from_thread(current, index, urlsLen)
