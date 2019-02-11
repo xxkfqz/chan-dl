@@ -138,9 +138,7 @@ def parse_api(chan, board, response):
             for k in p['fileInfos']:
                 u.append(res_url.format(board, k['name']))
                 f.append(k['name'])
-    else:
-        if chan == 'lolifox':
-            res_url = 'https://lolifox.org/{}/src/{}.{}'
+    elif: chan == 'lolifox':
         for p in response['posts']:
             u.append(res_url.format(board, p['tim'], p['ext']))
             f.append('{}{}'.format(p['tim'], p['ext']))
