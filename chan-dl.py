@@ -138,8 +138,9 @@ def parse_api(chan, board, response):
             for k in p['fileInfos']:
                 u.append(res_url.format(board, k['name']))
                 f.append(k['name'])
-    elif chan == 'lolifox':
-        res_url = 'https://lolifox.org/{}/src/{}.{}'
+    else:
+        if chan == 'lolifox':
+            res_url = 'https://lolifox.org/{}/src/{}.{}'
         for p in response['posts']:
             u.append(res_url.format(board, p['tim'], p['ext']))
             f.append('{}{}'.format(p['tim'], p['ext']))
@@ -157,27 +158,33 @@ def get_media_urls(raw_url):
         chan = '4chan'
         s[3] = s[3].split('#')[0]
         api_url = 'https://a.4cdn.org/{}/thread/{}.json'.format(s[1], s[3])
+
     # 2ch
     elif s[0] == '2ch.hk':
         chan = '2ch'
         s[3] = s[3].split('.')[0]
         api_url = 'https://2ch.hk/makaba/mobile.fcgi?task=get_thread&board={}&thread={}&num={}'.format(s[1], s[3], s[3])
+
     # Dobrochan
     elif s[0] == 'dobrochan.ru':
         chan = 'dobrochan'
         s[3] = s[3].split('.')[0]
         api_url = 'http://dobrochan.ru/api/thread/{}/{}/all.json?new_format&message_html&board'.format(s[1], s[3])
+
     # Tumbach
     elif s[0] == 'tumba.ch':
         chan = 'tumbach'
         s[3] = s[3].split('.')[0]
         api_url = 'https://tumba.ch/{}/res/{}.json'.format(s[1], s[3])
+
+    ### Wakaba based ###
     # Lolifox
     elif s[0] == 'lolifox.org':
         chan = 'lolifox'
         s[3] = s[3].split('.')[0]
         api_url = 'https://lolifox.org/{}/res/{}.json'.format(s[1], s[3])
-    # Anything else
+
+    ### Anything else ###
     else:
         errexit('Unknown URL: {}'.format(raw_url))
 
@@ -269,7 +276,7 @@ def download_from_thread(http_url, thread_index, max_thread_index):
                 wf.write(chunk)
 
         journal_path = ''
-    print_c('"{}" done!'.format(path))
+    print_c('"{}" done!\n'.format(path))
 
     if cliargs.zip or cliargs.only_zip:
         make_zip(path)
@@ -283,5 +290,5 @@ if __name__ == '__main__':
 
     urlsLen = len(cliargs.urls)
     for index, current in enumerate(cliargs.urls):
-       print_c('\n[{}/{}] Requesting {}'.format(index + 1, urlsLen, current))
+       print_c('[{}/{}] Requesting {}'.format(index + 1, urlsLen, current))
        download_from_thread(current, index, urlsLen)
