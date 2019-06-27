@@ -13,13 +13,31 @@ except ImportError:
     print('Module "requests" not found. See README.md for details')
     sys.exit(-1)
 
-# delete unfinished file when got a SIGINT
+# Delete unfinished file when got a SIGINT
 journal_path = ''
+
+# Will be using by 'progress_sym'
+sym_number = 0
 
 def print_c(*args, **kargs):
     if cliargs.quiet:
         return
+
     print(*args, **kargs)
+    sys.stdout.flush()
+
+def print_verbose(*args, **kargs):
+    if cliargs.verbose:
+        print_c(*args, *kargs)
+
+def progress_sym(clear = False):
+    if cliargs.quiet:
+        return
+
+    global sym_number
+    symbols = '/-\\|'
+    print('\b' + symbols[sym_number % len(symbols)], end='')
+    sym_number += 1
     sys.stdout.flush()
 
 def errexit(msg):
@@ -82,6 +100,12 @@ Supported imageboards:
         '--skip-failed',
         action = 'store_true',
         help = 'just skip downloading failed URL instead quit'
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action = 'store_true',
+        help = 'be a little verbose'
     )
     parser.add_argument(
         '--no-stderr',
@@ -204,16 +228,19 @@ def get_media_urls(raw_url):
 
 def make_zip(path):
     zipname = path + '.zip'
-    print_c('Creating {}...'.format(zipname))
+    print_c('Creating {}...'.format(zipname), end='')
     archive = zipfile.ZipFile(zipname, 'w')
     for root, _, files in os.walk(path):
         for f in files:
-            print_c('  adding {}'.format(f))
+            print_verbose('  adding {}'.format(f))
             archive.write(
                 os.path.join(root, f),
                 compress_type = zipfile.ZIP_DEFLATED
             )
-    print_c('Archive "{}" done!'.format(zipname))
+    if cliargs.verbose:
+        print_c('Archive "{}" done!'.format(zipname))
+    else:
+        print_c('done!')
 
     if cliargs.only_zip:
         print_c('Removing directory "{}"...'.format(path))
@@ -247,9 +274,10 @@ def download_from_thread(http_url, thread_index, max_thread_index):
 
     try:
         if os.path.exists(path):
-            print_c('Directory "{}" already exists, skipping...'.format(path))
+            print_verbose('Directory "{}" already exists, skipping...'.format(path))
+            pass
         else:
-            print_c('Creating directory: ' + path)
+            print_verbose('Creating directory: ' + path)
             os.mkdir(path)
     except OSError:
         errexit('Cannot create a directory!')
@@ -261,12 +289,12 @@ def download_from_thread(http_url, thread_index, max_thread_index):
         filepath = download_path + f
         journal_path = filepath
         if os.path.exists(filepath) and not cliargs.overwrite:
-            #print_c(' already exists, skipping', end='')
+            print_verbose('"{}" already exists, skipping'.format(filepath), end='')
             continue
         else:
-            tstr = '[{}/{}]-'.format(thread_index + 1, max_thread_index) if max_thread_index != 1 else ''
-            outstr = tstr + '[{}/{}] {}'.format(i + 1, ulen, f)
-            print_c(outstr)
+            outstr = '\r[{}/{}] {}   '.format(i + 1, ulen, f)
+            print_c(outstr, end='')
+            progress_sym()
 
         df = requests.get(u)
         with open(filepath, 'wb') as wf:
@@ -274,7 +302,7 @@ def download_from_thread(http_url, thread_index, max_thread_index):
                 wf.write(chunk)
 
         journal_path = ''
-    print_c('"{}" done!\n'.format(path))
+    print_c('\r"{}" done!   '.format(path))
 
     if cliargs.zip or cliargs.only_zip:
         make_zip(path)
@@ -288,5 +316,5 @@ if __name__ == '__main__':
 
     urlsLen = len(cliargs.urls)
     for index, current in enumerate(cliargs.urls):
-       print_c('[{}/{}] Requesting {}'.format(index + 1, urlsLen, current))
+       print_c('\n[{}/{}] Requesting {}'.format(index + 1, urlsLen, current))
        download_from_thread(current, index, urlsLen)
