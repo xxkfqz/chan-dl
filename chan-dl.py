@@ -335,7 +335,7 @@ def download_from_thread(http_url, thread_index, max_thread_index):
                         try:
                             os.remove(new_filepath)
                         except:
-                            pass
+                            print_c('Cannot remove duplicated file: "{}"'.format(new_filepath))
 
             new_filepath = download_path + hash + '.' + filepath.split('.')[-1]
             try:
