@@ -4,6 +4,8 @@
 import signal
 import sys
 import os
+from hashlib import md5
+
 import argparse
 import zipfile
 try:
@@ -70,12 +72,18 @@ Supported imageboards:
         '-o',
         '--overwrite',
         action = 'store_true',
-        help = 'overwrite existing files'
+        help = 'overwrite existing files\n(does not works with -m)'
     )
     parser.add_argument(
         '-d',
         '--dir',
         help = 'output directory'
+    )
+    parser.add_argument(
+        '-m',
+        '--md5',
+        action = 'store_true',
+        help = 'change filenames to MD5 hash'
     )
     parser.add_argument(
         '-z',
@@ -228,7 +236,7 @@ def get_media_urls(raw_url):
 
 def make_zip(path):
     zipname = path + '.zip'
-    print_c('Creating {}...'.format(zipname), end='')
+    print_c('Creating {}...'.format(zipname))
     archive = zipfile.ZipFile(zipname, 'w')
     for root, _, files in os.walk(path):
         for f in files:
@@ -243,22 +251,22 @@ def make_zip(path):
         print_c('done!')
 
     if cliargs.only_zip:
-        print_c('Removing directory "{}"...'.format(path))
+        print_verbose('Removing directory "{}"...'.format(path))
         try:
             for root, dirs, files in os.walk(path):
                 for f in files:
                     fpath = os.path.join(root, f)
-                    print_c('  removing {}'.format(fpath))
+                    print_verbose('  removing {}'.format(fpath))
                     os.remove(fpath)
                 # Anyway...
                 for d in dirs:
                     dpath = os.path.join(root, d)
-                    print_c('  removing directory (?) "{}"'.format(dpath))
+                    print_verbose('  removing directory (?) "{}"'.format(dpath))
                     os.rmdir(dpath)
             os.rmdir(root)
         except OSError:
             errexit('OSError in file "{}"'.format(OSError.filename))
-        print_c('"{}" has been removed!'.format(path))
+        print_verbose('"{}" has been removed!'.format(path))
 
 def download_from_thread(http_url, thread_index, max_thread_index):
     media_urls, file_names, path = get_media_urls(http_url)
@@ -292,16 +300,29 @@ def download_from_thread(http_url, thread_index, max_thread_index):
             print_verbose('"{}" already exists, skipping'.format(filepath), end='')
             continue
         else:
-            outstr = '\r[{}/{}] {}   '.format(i + 1, ulen, f)
+            outstr = '\b \r[{}/{}] {}   '.format(i + 1, ulen, f)
             print_c(outstr, end='')
             progress_sym()
 
         df = requests.get(u)
+        if cliargs.md5:
+            hasher = md5()
+
         with open(filepath, 'wb') as wf:
             for chunk in df.iter_content(2048):
+                if cliargs.md5:
+                    hasher.update(chunk)
                 wf.write(chunk)
 
         journal_path = ''
+
+        if cliargs.md5:
+            new_filepath = download_path + hasher.hexdigest() + '.' + filepath.split('.')[-1]
+            try:
+                os.rename(filepath, new_filepath)
+            except FileExistsError:
+                os.remove(filepath)
+
     print_c('\r"{}" done!   '.format(path))
 
     if cliargs.zip or cliargs.only_zip:
