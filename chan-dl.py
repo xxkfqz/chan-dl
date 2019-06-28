@@ -18,8 +18,11 @@ except ImportError:
 # Delete unfinished file when got a SIGINT
 journal_path = ''
 
-# Will be using by 'progress_sym'
+# Will be used by 'progress_sym'
 sym_number = 0
+
+# Will be used if we want to check duplications
+sum_list = {}
 
 def print_c(*args, **kargs):
     if cliargs.quiet:
@@ -84,6 +87,12 @@ Supported imageboards:
         '--md5',
         action = 'store_true',
         help = 'change filenames to MD5 hash'
+    )
+    parser.add_argument(
+        '-c',
+        '--check',
+        action = 'store_true',
+        help = 'check files for duplicating via MD5\n(like -m option but without renaming)'
     )
     parser.add_argument(
         '-z',
@@ -305,19 +314,30 @@ def download_from_thread(http_url, thread_index, max_thread_index):
             progress_sym()
 
         df = requests.get(u)
-        if cliargs.md5:
-            hasher = md5()
+        hasher = md5() if cliargs.md5 or cliargs.check else False
 
         with open(filepath, 'wb') as wf:
             for chunk in df.iter_content(2048):
-                if cliargs.md5:
+                if hasher:
                     hasher.update(chunk)
                 wf.write(chunk)
 
         journal_path = ''
 
         if cliargs.md5:
-            new_filepath = download_path + hasher.hexdigest() + '.' + filepath.split('.')[-1]
+            hash = hasher.hexdigest()
+
+            if cliargs.check:
+                for file, sum in sum_list:
+                    print_verbose('"{}" - "{}"'.format(file, sum))
+                    if sum == hash:
+                        print_verbose('Duplication: "{}" and "{}" ({})'.format(file, filepath, hash))
+                        try:
+                            os.remove(new_filepath)
+                        except:
+                            pass
+
+            new_filepath = download_path + hash + '.' + filepath.split('.')[-1]
             try:
                 os.rename(filepath, new_filepath)
             except FileExistsError:
