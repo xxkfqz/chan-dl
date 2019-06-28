@@ -24,6 +24,8 @@ sym_number = 0
 # Will be used if we want to check duplications
 sum_list = {}
 
+downloaded_files = 0
+
 def print_c(*args, **kargs):
     if cliargs.quiet:
         return
@@ -76,6 +78,18 @@ Supported imageboards:
         '--overwrite',
         action = 'store_true',
         help = 'overwrite existing files\n(does not works with -m)'
+    )
+    parser.add_argument(
+        '-f',
+        '--from',
+        dest = 'start_index',
+        help = 'start of range mediafiles number (default: 1)'
+    )
+    parser.add_argument(
+        '-t',
+        '--to',
+        dest = 'end_index',
+        help = 'end of range mediafiles number (default: none)'
     )
     parser.add_argument(
         '-d',
@@ -283,6 +297,12 @@ def download_from_thread(http_url, thread_index, max_thread_index):
         return
     ulen = len(media_urls)
 
+    start_index = int(cliargs.start_index) - 1 if cliargs.start_index else 0
+    end_index = int(cliargs.end_index) if cliargs.end_index else ulen
+
+    if start_index > ulen or end_index < 1:
+        errexit('Indexes ({}-{}) is out of range ({})'.format(start_index, end_index, ulen))
+
     if output_directory != '':
         try:
             os.chdir(output_directory)
@@ -300,7 +320,7 @@ def download_from_thread(http_url, thread_index, max_thread_index):
         errexit('Cannot create a directory!')
 
     download_path = path + '/'
-    for i in range(0, ulen):
+    for i in range(start_index, end_index):
         f = file_names[i].strip()
         u = media_urls[i]
         filepath = download_path + f
@@ -343,7 +363,10 @@ def download_from_thread(http_url, thread_index, max_thread_index):
             except FileExistsError:
                 os.remove(filepath)
 
-    print_c('\r"{}" done!   '.format(path))
+        global downloaded_files
+        downloaded_files += 1
+
+    print_c('\b\b\r"{}" done! ({} file(-s) downloaded)   '.format(path, downloaded_files))
 
     if cliargs.zip or cliargs.only_zip:
         make_zip(path)
@@ -357,5 +380,5 @@ if __name__ == '__main__':
 
     urlsLen = len(cliargs.urls)
     for index, current in enumerate(cliargs.urls):
-       print_c('\n[{}/{}] Requesting {}'.format(index + 1, urlsLen, current))
-       download_from_thread(current, index, urlsLen)
+        print_c('\n[{}/{}] Requesting {}'.format(index + 1, urlsLen, current))
+        download_from_thread(current, index, urlsLen)
