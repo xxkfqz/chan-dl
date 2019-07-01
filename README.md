@@ -17,8 +17,17 @@ Script for downloading media files from imageboards using their API
 
 # Usage
 
-    chan-dl.py [-h] [-o] [-d DIR] [-z] [-Z] [-q] [-s] [-v] [--no-stderr]
-               URL [URL ...]
+    chan-dl.py [-h] [-o] [-f START_INDEX] [-t END_INDEX] [-d DIR] [-m] [-c]
+               [-z] [-Z] [-q] [-s] [-v] [--no-stderr] URL [URL ...]
+
+    Download media files from imageboards
+
+    Supported imageboards:
+     * 4chan
+     * 2ch
+     * Dobrochan
+     * Tumbach
+     * Lolifox
 
     positional arguments:
       URL                   url to thread
@@ -26,8 +35,16 @@ Script for downloading media files from imageboards using their API
     optional arguments:
       -h, --help            show this help message and exit
       -o, --overwrite       overwrite existing files
+                            (does not works with -m)
+      -f START_INDEX, --from START_INDEX
+                            start of range mediafiles number (default: 1)
+      -t END_INDEX, --to END_INDEX
+                            end of range mediafiles number (default: none)
       -d DIR, --dir DIR     output directory
-      -z, --zip             create *.zip arhive after downloading
+      -m, --md5             change filenames to MD5 hash
+      -c, --check           check files for duplicating via MD5
+                            (like -m option but without renaming)
+      -z, --zip             create *.zip archive after downloading
                             (previous one will be removed if exists)
       -Z, --only-zip        delete downloaded files after archiving
                             (includes -z)
@@ -39,10 +56,13 @@ Script for downloading media files from imageboards using their API
 # Examples
 
     # Just download all pictures and videos to current directory
-    ./chan-dl.py http://boards.4chan.org/c/thread/1990691
+    chan-dl.py http://boards.4chan.org/c/thread/1990691
 
     # Multiple URLs
-    ./chan-dl.py boards.4chan.org/w/thread/1565459 2ch.hk/pr/res/1008826.html#1008826
+    chan-dl.py boards.4chan.org/w/thread/1565459 2ch.hk/pr/res/1008826.html#1008826
 
     # Create a ZIP archive after download. Put everything at '~/pictures'
-    ./chan-dl.py http://boards.4channel.org/c/thread/3475819 -d ~/pictures
+    chan-dl.py http://boards.4channel.org/c/thread/3475819 -d ~/pictures
+
+    # Download only 10-15 files from thread and check them for duplications
+    chan-dl.py http://boards.4chan.org/c/thread/1990691 -f 10 -t 15 -c
