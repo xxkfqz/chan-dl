@@ -334,7 +334,13 @@ def download_from_thread(http_url, thread_index, max_thread_index):
             print_c(outstr, end='')
             progress_sym()
 
-        df = requests.get(u, verify=False)
+        downloaded = False
+        while not downloaded:
+            try:
+                df = requests.get(u, verify=False)
+                downloaded = True
+            except requests.exceptions.ConnectionError:
+                downloaded = False
         hasher = md5() if cliargs.md5 or cliargs.check else False
 
         with open(filepath, 'wb') as wf:
