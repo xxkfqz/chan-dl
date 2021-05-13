@@ -9,6 +9,7 @@ from hashlib import md5
 import argparse
 import zipfile
 try:
+    import urllib3
     import requests
 except ImportError:
     # RTFM
@@ -375,6 +376,8 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, sigint_handler)
     global cliargs
     cliargs = init_parser()
+
+    urllib3.disable_warnings()
 
     output_directory = cliargs.dir or ''
 
