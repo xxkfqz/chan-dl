@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyleft by xxkfqz <xxkfqz@gmail.com> 2d18-2d19
+# Copyleft by xxkfqz <xxkfqz@gmail.com> 2d18-2d19, 2d21
 
 import signal
 import sys
