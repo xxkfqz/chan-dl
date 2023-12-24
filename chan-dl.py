@@ -170,10 +170,12 @@ def parse_api(chan, board, response):
             u.append('https://i.4cdn.org/{}/{}{}'.format(board, tim, ext))
             f.append('{}{}'.format(tim, ext))
     elif chan == '2ch':
-        for p in response:
-            for files in p['files']:
-                u.append('https://2ch.hk/' + files['path'])
-                f.append(files['name'])
+        posts = response['threads'][0]['posts']
+        for post in posts:
+            if post['files'] is None: continue
+            for file in post['files']:
+                u.append('https://2ch.hk/' + file['path'])
+                f.append(file['name'])
     elif chan == 'dobrochan':
         for p in response['result']['threads'][0]['posts']:
             for files in p['files']:
@@ -217,7 +219,7 @@ def get_media_urls(raw_url):
     elif s[0] == '2ch.hk':
         chan = '2ch'
         s[3] = s[3].split('.')[0]
-        api_url = 'https://2ch.hk/makaba/mobile.fcgi?task=get_thread&board={}&thread={}&num={}'.format(s[1], s[3], s[3])
+        api_url = 'https://2ch.hk/{}/res/{}.json'.format(s[1], s[3])
 
     # Dobrochan
     elif s[0] == 'dobrochan.ru':
@@ -256,6 +258,7 @@ def get_media_urls(raw_url):
 
     re = result.json()
     u, f = parse_api(chan, s[1], re)
+    print_verbose('API url: {}'.format(api_url))
     return u, f, '{}-{}-{}'.format(chan, s[1], s[3])
 
 def make_zip(path):
